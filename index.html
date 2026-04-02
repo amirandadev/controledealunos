@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle de Alunos · Kimbelly</title>
+  <title>Controle de Alunos</title>
 
   <!-- Fontes -->
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <!-- ── Firebase SDK (compat) — DEVE vir antes de firebase.js ── -->
+  <!-- ── Firebase SDK (compat) ── -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
@@ -491,19 +491,6 @@
     </div>
   </div>
 
-  <!--
-    ══════════════════════════════════════════════════════════════
-    Scripts da aplicação — ordem obrigatória:
-      1. firebase.js   → inicializa `db` no escopo global
-      2. financeiro.js → estado config/senha + cálculos financeiros
-      3. alunos.js     → CRUD e render de alunos
-      4. aulas.js      → CRUD e render de aulas
-      5. app.js        → bootstrap, navegação, dashboard, modais
-
-    SEM type="module": as funções precisam estar no escopo global
-    para serem chamadas pelos atributos onclick="" do HTML.
-    ══════════════════════════════════════════════════════════════
-  -->
   <script src="./js/firebase.js"></script>
   <script src="./js/financeiro.js"></script>
   <script src="./js/alunos.js"></script>
