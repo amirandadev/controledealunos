@@ -11,7 +11,7 @@ const firebaseConfig = {
   appId:             '1:1078210332589:web:4029ac33c53b3e061a0324',
 };
 
-// Proteção contra múltiplas inicializações (hot-reload, iframes, etc.)
+// Proteção contra múltiplas inicializações
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
   console.log('[firebase.js] App inicializado.');
