@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle de Alunos · Kimbelly</title>
+
+  <!-- Fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="./css/styles.css">
+
+  <!-- ── Bibliotecas externas ─────────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- ── Firebase SDK (compat) — DEVE vir antes de firebase.js ── -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+  <!-- LOADING OVERLAY -->
+  <div id="loading-overlay" aria-live="polite" aria-label="Carregando dados">
+    <div class="loading-spinner" role="status"></div>
+    <div class="loading-text">Carregando dados...</div>
+  </div>
+
+  <!-- TELA DE LOGIN -->
+  <div id="login-screen" style="display:none">
+    <div class="login-orb login-orb-1" aria-hidden="true"></div>
+    <div class="login-orb login-orb-2" aria-hidden="true"></div>
+    <div class="login-card">
+      <div class="login-monogram" aria-hidden="true">K</div>
+      <h1 class="login-title">Bem-vinda,<br>Kimbelly</h1>
+      <p class="login-subtitle">Insira sua senha para continuar</p>
+      <div class="input-group">
+        <label for="password-input">Senha</label>
+        <input
+          type="password"
+          id="password-input"
+          placeholder="••••••••"
+          autocomplete="current-password"
+          aria-describedby="login-error"
+        >
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
+      <p class="login-error" id="login-error" role="alert">Senha incorreta. Tente novamente.</p>
+    </div>
+  </div>
+
+  <!-- APLICAÇÃO PRINCIPAL -->
+  <div id="app">
+
+    <!-- BOTÃO FLUTUANTE DE MENU (mobile) -->
+    <button
+      class="float-menu-btn"
+      id="float-menu-btn"
+      onclick="toggleFloatMenu()"
+      aria-label="Abrir menu de navegação"
+      aria-expanded="false"
+      aria-controls="float-menu-panel"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <line x1="4" y1="7"  x2="20" y2="7"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="17" x2="20" y2="17"/>
+      </svg>
+    </button>
+
+    <!-- PAINEL DO MENU FLUTUANTE (mobile) -->
+    <div class="float-menu-panel" id="float-menu-panel" role="navigation" aria-label="Menu mobile">
+      <div class="float-menu-logo">
+        <div class="float-menu-logo-name">Controle de <span>Alunos</span></div>
+        <div class="float-menu-logo-sub">Kimbelly</div>
+      </div>
+
+      <div class="float-nav-item active" onclick="floatNav('dashboard')" data-page="dashboard" role="button" tabindex="0" aria-label="Dashboard">
+        <span class="float-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </span> Dashboard
+      </div>
+      <div class="float-nav-item" onclick="floatNav('alunos')" data-page="alunos" role="button" tabindex="0" aria-label="Alunos">
+        <span class="float-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+        </span> Alunos
+      </div>
+      <div class="float-nav-item" onclick="floatNav('aulas')" data-page="aulas" role="button" tabindex="0" aria-label="Registro de Aulas">
+        <span class="float-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="11" y2="14"/><line x1="8" y1="17" x2="14" y2="17"/></svg>
+        </span> Registro de Aulas
+      </div>
+      <div class="float-nav-item" onclick="floatNav('pagamentos')" data-page="pagamentos" role="button" tabindex="0" aria-label="Pagamentos">
+        <span class="float-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+        </span> Pagamentos
+      </div>
+      <div class="float-nav-item" onclick="floatNav('relatorios')" data-page="relatorios" role="button" tabindex="0" aria-label="Relatórios">
+        <span class="float-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+        </span> Relatórios
+      </div>
+
+      <div class="float-menu-divider" role="separator"></div>
+
+      <div class="float-nav-item" onclick="floatNav('configuracoes')" data-page="configuracoes" role="button" tabindex="0" aria-label="Configurações">
+        <span class="float-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span> Configurações
+      </div>
+      <div class="float-nav-item float-nav-logout" onclick="doLogout()" role="button" tabindex="0" aria-label="Sair da conta">
+        <span class="float-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        </span> Sair
+      </div>
+    </div>
+
+    <!-- SIDEBAR DE NAVEGAÇÃO (desktop) -->
+    <nav class="sidebar" aria-label="Menu principal">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-name">Controle de<br><span>Alunos</span></div>
+        <div class="sidebar-logo-sub">Kimbelly</div>
+      </div>
+
+      <div class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard" role="button" tabindex="0" aria-label="Dashboard" aria-current="page">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('alunos')" data-page="alunos" role="button" tabindex="0" aria-label="Alunos">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+        Alunos
+      </div>
+      <div class="nav-item" onclick="showPage('aulas')" data-page="aulas" role="button" tabindex="0" aria-label="Registro de Aulas">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        Registro de Aulas
+      </div>
+      <div class="nav-item" onclick="showPage('pagamentos')" data-page="pagamentos" role="button" tabindex="0" aria-label="Pagamentos">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+        Pagamentos
+      </div>
+      <div class="nav-item" onclick="showPage('relatorios')" data-page="relatorios" role="button" tabindex="0" aria-label="Relatórios">
+        <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg></span>
+        Relatórios
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="nav-item" onclick="showPage('configuracoes')" data-page="configuracoes" role="button" tabindex="0" aria-label="Configurações">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+          Configurações
+        </div>
+        <div class="nav-item nav-logout" onclick="doLogout()" role="button" tabindex="0" aria-label="Sair da conta">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+          Sair
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="main-content" id="main-content" role="main">
+
+      <!-- PÁGINA: Dashboard -->
+      <div class="page active" id="page-dashboard">
+        <div class="page-header">
+          <div class="greeting-text" id="dash-greeting">Boa tarde, <span class="name-highlight">Kimbelly</span></div>
+          <p id="dash-date"></p>
+        </div>
+        <div class="summary-grid" id="summary-grid"></div>
+        <div class="charts-grid">
+          <div class="glass-card chart-card">
+            <div class="chart-title">Horas por aluno</div>
+            <div class="chart-wrap"><canvas id="chart-horas"></canvas></div>
+          </div>
+          <div class="glass-card chart-card">
+            <div class="chart-title">Receita por aluno (R$)</div>
+            <div class="chart-wrap"><canvas id="chart-receita"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PÁGINA: Alunos -->
+      <div class="page" id="page-alunos">
+        <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <h1>Alunos</h1>
+            <p>Gerencie seus alunos cadastrados</p>
+          </div>
+          <button class="btn btn-accent" onclick="openModalAluno()" aria-label="Cadastrar novo aluno">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Novo Aluno
+          </button>
+        </div>
+        <div class="alunos-grid" id="alunos-grid"></div>
+      </div>
+
+      <!-- PÁGINA: Registro de Aulas -->
+      <div class="page" id="page-aulas">
+        <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+          <div>
+            <h1>Registro de Aulas</h1>
+            <p>Histórico de todas as aulas registradas</p>
+          </div>
+          <button class="btn btn-accent" onclick="openModalAula()" aria-label="Registrar nova aula">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nova Aula
+          </button>
+        </div>
+        <div class="filtros-bar" role="search" aria-label="Filtros de aula">
+          <span class="filtros-label">Filtrar:</span>
+          <label for="filtro-aluno-aulas" class="sr-only">Filtrar por aluno</label>
+          <select id="filtro-aluno-aulas" onchange="renderTabelaAulas()">
+            <option value="">Todos os alunos</option>
+          </select>
+          <label for="filtro-data-de" class="sr-only">Data inicial</label>
+          <input type="date" id="filtro-data-de" onchange="renderTabelaAulas()" aria-label="Data inicial">
+          <span style="font-size:0.82rem;color:var(--text2);align-self:center" aria-hidden="true">até</span>
+          <label for="filtro-data-ate" class="sr-only">Data final</label>
+          <input type="date" id="filtro-data-ate" onchange="renderTabelaAulas()" aria-label="Data final">
+          <button class="btn btn-outline btn-sm" onclick="limparFiltros()" aria-label="Limpar filtros">
+            <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Limpar
+          </button>
+        </div>
+        <div class="card-box">
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Data</th>
+                  <th scope="col">Aluno</th>
+                  <th scope="col">Horas</th>
+                  <th scope="col">Transporte</th>
+                  <th scope="col">Valor (R$)</th>
+                  <th scope="col">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-aulas-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PÁGINA: Pagamentos -->
+      <div class="page" id="page-pagamentos">
+        <div class="page-header">
+          <h1>Pagamentos</h1>
+          <p>Controle de recebimentos por aluno</p>
+        </div>
+        <div class="alunos-grid" id="pagamentos-grid"></div>
+      </div>
+
+      <!-- PÁGINA: Relatórios -->
+      <div class="page" id="page-relatorios">
+        <div class="page-header">
+          <h1>Relatórios</h1>
+          <p>Exporte o comprovante de aulas de cada aluno em PDF</p>
+        </div>
+        <div class="alunos-grid" id="relatorios-grid"></div>
+      </div>
+
+      <!-- PÁGINA: Configurações -->
+      <div class="page" id="page-configuracoes">
+        <div class="page-header">
+          <h1>Configurações</h1>
+          <p>Ajuste as preferências do sistema</p>
+        </div>
+        <div class="config-container">
+          <div class="glass-card settings-card">
+            <h3>Alterar Senha</h3>
+            <div class="form-group">
+              <label for="cfg-senha-atual">Senha Atual</label>
+              <input type="password" id="cfg-senha-atual" placeholder="••••••">
+            </div>
+            <div class="form-group">
+              <label for="cfg-nova-senha">Nova Senha</label>
+              <input type="password" id="cfg-nova-senha" placeholder="••••••">
+            </div>
+            <div class="form-group">
+              <label for="cfg-confirmar-senha">Confirmar Nova Senha</label>
+              <input type="password" id="cfg-confirmar-senha" placeholder="••••••">
+            </div>
+            <button class="btn btn-accent" onclick="alterarSenha()">Salvar Senha</button>
+          </div>
+          <div class="glass-card settings-card">
+            <h3>Valores Padrão</h3>
+            <div class="form-group">
+              <label for="cfg-valor-hora">Valor (R$) por hora</label>
+              <input type="number" id="cfg-valor-hora" placeholder="15.00" step="0.50">
+            </div>
+            <div class="form-group">
+              <label for="cfg-valor-transp">Valor do Transporte (R$) por aula</label>
+              <input type="number" id="cfg-valor-transp" placeholder="0.00" step="0.50">
+            </div>
+            <button class="btn btn-accent" onclick="salvarConfig()">Salvar</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODAL: Cadastro / Edição de Aluno -->
+  <div class="modal-overlay" id="modal-aluno" aria-hidden="true" role="dialog" aria-labelledby="modal-aluno-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-aluno-title">Novo Aluno</h2>
+        <button class="modal-close" onclick="closeModal('modal-aluno')" aria-label="Fechar modal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <input type="hidden" id="aluno-edit-id">
+      <div class="form-group">
+        <label for="aluno-nome">Nome completo</label>
+        <input type="text" id="aluno-nome" placeholder="Ex: Maria Silva">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="aluno-valor-hora">Valor/hora (R$)</label>
+          <input type="number" id="aluno-valor-hora" placeholder="15.00" step="0.50">
+        </div>
+        <div class="form-group">
+          <label for="aluno-transp">Transporte por aula (R$)</label>
+          <input type="number" id="aluno-transp" placeholder="0.00" step="0.50">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-aluno')">Cancelar</button>
+        <button class="btn btn-accent" onclick="salvarAluno()">Salvar Aluno</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Cadastro / Edição de Aula -->
+  <div class="modal-overlay" id="modal-aula" aria-hidden="true" role="dialog" aria-labelledby="modal-aula-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-aula-title">Nova Aula</h2>
+        <button class="modal-close" onclick="closeModal('modal-aula')" aria-label="Fechar modal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <input type="hidden" id="aula-edit-id">
+      <div class="form-group">
+        <label for="aula-aluno-id">Aluno</label>
+        <select id="aula-aluno-id"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="aula-data">Data</label>
+          <input type="date" id="aula-data">
+        </div>
+        <div class="form-group">
+          <label for="aula-horas">Qtd. Horas</label>
+          <input type="number" id="aula-horas" placeholder="1.5" step="0.5" min="0.5">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="aula-transporte">Transporte</label>
+          <select id="aula-transporte">
+            <option value="NAO">Não</option>
+            <option value="SIM">Sim</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="aula-total">Total calculado (R$)</label>
+          <input type="number" id="aula-total" step="0.50" readonly>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-aula')">Cancelar</button>
+        <button class="btn btn-accent" onclick="salvarAula()">Salvar Aula</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Registro de Pagamento -->
+  <div class="modal-overlay" id="modal-pagamento" aria-hidden="true" role="dialog" aria-labelledby="modal-pag-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-pag-title">Registrar Pagamento</h2>
+        <button class="modal-close" onclick="closeModal('modal-pagamento')" aria-label="Fechar modal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <input type="hidden" id="pag-aluno-id">
+      <div style="background:rgba(176,108,218,0.08);border:1px solid rgba(176,108,218,0.18);border-radius:var(--radius-sm);padding:14px 16px;margin-bottom:16px;display:flex;gap:24px;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:0.62rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.09em;font-weight:700;margin-bottom:5px">Total a cobrar</div>
+          <div id="pag-info-total" style="font-size:1.15rem;font-weight:700;color:var(--text)"></div>
+        </div>
+        <div>
+          <div style="font-size:0.62rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.09em;font-weight:700;margin-bottom:5px">Já pago</div>
+          <div id="pag-info-pago" style="font-size:1.15rem;font-weight:700;color:var(--success)"></div>
+        </div>
+        <div>
+          <div style="font-size:0.62rem;color:var(--text2);text-transform:uppercase;letter-spacing:0.09em;font-weight:700;margin-bottom:5px">Saldo restante</div>
+          <div id="pag-info-saldo" style="font-size:1.15rem;font-weight:700;color:var(--accent)"></div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="pag-data">Data do pagamento</label>
+          <input type="date" id="pag-data">
+        </div>
+        <div class="form-group">
+          <label for="pag-valor">Valor recebido (R$)</label>
+          <input type="number" id="pag-valor" placeholder="0,00" step="0.50" min="0.01">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="pag-obs">Observação (opcional)</label>
+        <input type="text" id="pag-obs" placeholder="Ex: Pix, dinheiro, transferência…">
+      </div>
+      <div style="margin-top:8px">
+        <div style="font-size:0.62rem;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:0.09em;margin-bottom:10px">Histórico</div>
+        <div id="pag-historico-lista"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-pagamento')">Fechar</button>
+        <button class="btn btn-accent" onclick="confirmarPagamento()" aria-label="Registrar pagamento">
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Registrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Exportação de Comprovante PDF -->
+  <div class="modal-overlay" id="modal-pdf" aria-hidden="true" role="dialog" aria-labelledby="modal-pdf-title">
+    <div class="modal" style="max-width:460px">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-pdf-title">Exportar Comprovante</h2>
+        <button class="modal-close" onclick="closeModal('modal-pdf')" aria-label="Fechar modal">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <input type="hidden" id="pdf-aluno-id">
+      <div class="periodo-info" id="pdf-aluno-info"></div>
+      <div class="form-group">
+        <label for="pdf-data-de">Data inicial (opcional)</label>
+        <input type="date" id="pdf-data-de">
+      </div>
+      <div class="form-group">
+        <label for="pdf-data-ate">Data final (opcional)</label>
+        <input type="date" id="pdf-data-ate">
+      </div>
+      <p style="font-size:0.78rem;color:var(--text3);margin-top:-0.5rem;margin-bottom:1rem">
+        Deixe em branco para incluir todas as aulas.
+      </p>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('modal-pdf')">Cancelar</button>
+        <button class="btn btn-accent" onclick="confirmarGerarPDF()">Gerar PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de feedback ao usuário -->
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Banner de aviso de conexão offline -->
+  <div id="offline-banner" role="alert" aria-live="assertive">
+    ⚠ Sem conexão com a internet — as alterações podem não ser salvas.
+  </div>
+
+  <!-- Modal de confirmação de exclusão -->
+  <div id="confirm-overlay" role="dialog" aria-labelledby="confirm-title" aria-modal="true">
+    <div class="confirm-box">
+      <div class="confirm-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14H6L5 6"/>
+          <path d="M10 11v6"/><path d="M14 11v6"/>
+          <path d="M9 6V4h6v2"/>
+        </svg>
+      </div>
+      <div class="confirm-title" id="confirm-title">Confirmar exclusão</div>
+      <div class="confirm-msg"   id="confirm-msg">Esta ação não pode ser desfeita.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-outline" id="confirm-cancel-btn">Cancelar</button>
+        <button class="btn btn-danger"  id="confirm-ok-btn">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!--
+    ══════════════════════════════════════════════════════════════
+    Scripts da aplicação — ordem obrigatória:
+      1. firebase.js   → inicializa `db` no escopo global
+      2. financeiro.js → estado config/senha + cálculos financeiros
+      3. alunos.js     → CRUD e render de alunos
+      4. aulas.js      → CRUD e render de aulas
+      5. app.js        → bootstrap, navegação, dashboard, modais
+
+    SEM type="module": as funções precisam estar no escopo global
+    para serem chamadas pelos atributos onclick="" do HTML.
+    ══════════════════════════════════════════════════════════════
+  -->
+  <script src="./js/firebase.js"></script>
+  <script src="./js/financeiro.js"></script>
+  <script src="./js/alunos.js"></script>
+  <script src="./js/aulas.js"></script>
+  <script src="./js/app.js"></script>
+
+</body>
+</html>
