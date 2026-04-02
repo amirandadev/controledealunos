@@ -296,7 +296,7 @@ function setLoading(btn, isLoading) {
 }
 
 // ═════════════════════════════════════════════════════════════
-// Bootstrap — aguarda DOM pronto
+// Bootstrap 
 // ═════════════════════════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
