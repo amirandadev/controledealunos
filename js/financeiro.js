@@ -33,11 +33,6 @@ const totalPagoAluno  = id => {
   return (al.pagamentos || []).reduce((s, p) => s + Number(p.valor), 0);
 };
 
-/*
- * computeAlunoStats — agrega horas, valor e pagamentos de um aluno
- * em passagem única pelos arrays, evitando múltiplos .filter/.reduce
- * redundantes durante a renderização de várias seções da UI.
- */
 function computeAlunoStats(alunoId) {
   const aulas = getAulasByAluno(alunoId);
   let horas = 0, valor = 0;
@@ -50,11 +45,6 @@ function computeAlunoStats(alunoId) {
   return { horas, valor, pago, saldo: Math.max(0, valor - pago), naulas: aulas.length };
 }
 
-/*
- * buildStatusInfo — resolve badge, label e cor de saldo
- * a partir dos valores calculados, centralizando a lógica de status
- * usada em renderPagamentos, renderAlunos e abrirModalPagamento.
- */
 function buildStatusInfo(valor, pago, saldo) {
   if (saldo <= 0 && valor > 0) return { badgeClass: 'badge-pago',     label: 'Pago',     saldoColor: 'var(--success)' };
   if (pago > 0)                return { badgeClass: 'badge-parcial',  label: 'Parcial',  saldoColor: 'var(--accent)'  };
@@ -461,7 +451,7 @@ function gerarPDF(alunoId, filtroDe, filtroAte) {
   doc.text('R$ ' + Number(aluno.valorHora || 15).toFixed(2).replace('.', ','), PW - M - PAD_X, valueY(y, H_ALUNO), { align: 'right' });
   y += H_ALUNO + SP;
 
-  // 3. Cards de resumo (2 colunas)
+  // 3. Cards de resumo 
   const c2W = (CW - SP) / 2;
   const drawSummaryCard = (cx, cy, label, value) => {
     doc.setFillColor(...C.cinzaF); doc.setDrawColor(...C.cinzaB); doc.setLineWidth(0.2);
@@ -489,10 +479,6 @@ function gerarPDF(alunoId, filtroDe, filtroAte) {
   doc.setFillColor(...C.cinzaF); doc.setDrawColor(...C.cinzaB); doc.setLineWidth(0.2);
   rr(M, y, CW, tabelaTotalH, R_SMALL, true, true);
 
-  /*
-   * Cabeçalho: dois passos para cantos superiores arredondados e inferiores retos,
-   * sem clip de conteúdo.
-   */
   doc.setFillColor(...C.roxo); doc.setDrawColor(...C.roxo); doc.setLineWidth(0);
   rr(M, y, CW, H_HEADER_T, R_SMALL, true, false);
   doc.rect(M, y + R_SMALL, CW, H_HEADER_T - R_SMALL, 'F');
@@ -545,7 +531,7 @@ function gerarPDF(alunoId, filtroDe, filtroAte) {
 
   y += SP * 2;
 
-  // 5. Bloco final — 3 colunas (Valor · Pago · Status)
+  // 5. Bloco final 
   if (y > PH - 46) { doc.addPage(); doc.setFillColor(...C.bg); doc.rect(0, 0, PW, PH, 'F'); y = 18; }
 
   let sFill, sBord, sText, sLabel;
