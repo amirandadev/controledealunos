@@ -285,7 +285,6 @@ select:focus-visible {
 .nav-item.active .nav-icon svg { opacity: 1; stroke: var(--accent); }
 .nav-item:focus-visible        { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-/* Container de ícone — dimensões fixas 20×20px para alinhamento consistente */
 .nav-icon {
   display: inline-flex;
   align-items: center;
@@ -454,7 +453,6 @@ tbody tr:hover  { background: rgba(255,255,255,0.03); }
 .btn-sm   { padding: 6px 12px; font-size: 0.78rem; min-height: 32px; }
 .btn-icon { padding: 8px; min-height: 36px; min-width: 36px; justify-content: center; }
 
-/* Estado de loading em botões — indicador visual via pseudo-elemento */
 .btn[data-loading] {
   opacity: 0.65;
   pointer-events: none;
@@ -574,10 +572,6 @@ tbody tr:hover  { background: rgba(255,255,255,0.03); }
 .settings-card    { padding: 24px 28px; margin-bottom: 0; }
 .settings-card h3 { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 20px; }
 
-/*
- * .config-container — coluna estreita à esquerda no desktop.
- * No mobile herda display:block e ocupa largura total (sem override necessário).
- */
 .config-container {
   display: flex;
   flex-direction: column;
@@ -586,8 +580,8 @@ tbody tr:hover  { background: rgba(255,255,255,0.03); }
 
 @media (min-width: 1024px) {
   .config-container {
-    max-width: 520px;   /* painel compacto, jamais estica */
-    width: 100%;        /* respeita o espaço disponível abaixo de 520px */
+    max-width: 520px;  
+    width: 100%; 
   }
 }
 
@@ -652,7 +646,7 @@ tbody tr:hover  { background: rgba(255,255,255,0.03); }
 #toast.error   { color: var(--danger);  border-color: rgba(240,96,122,0.25); }
 
 /* ═════════════════════════════════════════════════════════════
-   MODAL DE CONFIRMAÇÃO CUSTOMIZADO
+   MODAL DE CONFIRMAÇÃO
    ═════════════════════════════════════════════════════════════ */
 #confirm-overlay {
   position: fixed;
@@ -928,10 +922,6 @@ tbody tr:hover  { background: rgba(255,255,255,0.03); }
   }
   .float-nav-item.active .float-nav-icon svg { opacity: 1; stroke: var(--accent); }
 
-  /*
-   * Container de ícone — 28×28px com SVG interno de 18×18px.
-   * display:block elimina o espaço phantom de elementos inline.
-   */
   .float-nav-icon {
     display: inline-flex;
     align-items: center;
@@ -954,8 +944,7 @@ tbody tr:hover  { background: rgba(255,255,255,0.03); }
     transition: opacity var(--t-base) var(--ease), stroke var(--t-base) var(--ease);
   }
   .float-nav-item:hover .float-nav-icon svg { opacity: 0.92; }
-
-  /* Ajuste óptico do ícone de engrenagem */
+   
   .float-nav-item[data-page="configuracoes"] .float-nav-icon svg { transform: scale(0.88); }
 
   .float-menu-divider {
@@ -973,7 +962,6 @@ tbody tr:hover  { background: rgba(255,255,255,0.03); }
   }
   .float-nav-logout:hover .float-nav-icon svg { stroke: var(--danger); opacity: 1; }
 
-  /* Prevenção de overflow em textos longos */
   .greeting-text, .page-header h1, .page-header p,
   .aluno-name, .modal-title, .chart-title {
     overflow-wrap: break-word;
